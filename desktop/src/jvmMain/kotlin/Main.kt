@@ -9,7 +9,7 @@ fun main() = application {
     Window(
         onCloseRequest = ::exitApplication,
         title = "The Game",
-        state = rememberWindowState(width = 800.dp, height = 600.dp)
+        state = rememberWindowState(width = 800.dp, height = 800.dp)
     ) {
         MaterialTheme {
             App()

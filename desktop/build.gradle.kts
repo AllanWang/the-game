@@ -12,7 +12,7 @@ version = "1.0"
 kotlin {
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "15"
+            kotlinOptions.jvmTarget = "11"
         }
         withJava()
         testRuns["test"].executionTask.configure {
