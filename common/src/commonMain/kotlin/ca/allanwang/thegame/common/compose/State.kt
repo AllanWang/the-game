@@ -43,8 +43,8 @@ fun throttle(
  * Inspired by animateValueAsState, though note that we aren't trying to animate to a new value.
  * Rather, we animate from the new value to another new max.
  *
- * If the supplied [value] does not match the current value,
- * we will quickly animate to that value or an intermediate before continuing to the expected destination.
+ * If the supplied [value] does not match the current value and we are animating to a static value (speed 0),
+ * we will add our own animation. Otherwise, we will immediately jump and start our intended animation.on.
  *
  * Resulting progress is between 0f and 1f
  */
@@ -67,15 +67,14 @@ fun animateProgressableState(
                 val start: Float = progressable.value / progressable.max
                 val speedMillis = progressable.speed / progressable.max / 1_000
 
-                val durationToStart =
-                    (abs(animatable.value - start) * 500).toInt()
-
-                val now = System.currentTimeMillis()
-
                 // Go to expected start value and stay there
                 if (speedMillis == 0f) {
                     // Already at start
                     if (animatable.value == start) return@launch
+
+                    val durationToStart =
+                        (abs(animatable.value - start) * 200).toInt()
+
                     animatable.animateTo(
                         start, animationSpec = tween(
                             durationMillis = durationToStart,
@@ -85,51 +84,18 @@ fun animateProgressableState(
                     return@launch
                 }
 
-                val expectedDuration = ((1f - start) / speedMillis).toLong()
-
-                if (expectedDuration < durationToStart) {
-                    // too slow, animate directly
-                    animatable.animateTo(
-                        start, animationSpec = tween(
-                            durationMillis = 0,
-                            easing = LinearEasing
-                        )
-                    )
-                    animatable.animateTo(
-                        1f, animationSpec = tween(
-                            durationMillis = expectedDuration.toInt(),
-                            easing = LinearEasing
-                        )
-                    )
-                    return@launch
-                }
-
-                // Compute intermediate and then resume expected speed once there
-                val intermediate = start + speedMillis * durationToStart
-
-                if (intermediate >= 1f) {
-                    // Will get to max directly, animate with our own duration and finish
-                    animatable.animateTo(
-                        1f, animationSpec = tween(
-                            durationMillis = durationToStart,
-                            easing = LinearEasing
-                        )
-                    )
-                    return@launch
-                }
-
-                // Animate to intermediate, then animate to max using supplied speed
                 animatable.animateTo(
-                    intermediate, animationSpec = tween(
-                        durationMillis = durationToStart,
+                    start, animationSpec = tween(
+                        durationMillis = 0,
                         easing = LinearEasing
                     )
                 )
 
-                // Animate to max with remaining time
+                val durationToEnd = ((1f - start) / speedMillis).toInt()
+
                 animatable.animateTo(
                     1f, animationSpec = tween(
-                        durationMillis = (expectedDuration + now - System.currentTimeMillis()).toInt(),
+                        durationMillis = durationToEnd,
                         easing = LinearEasing
                     )
                 )
