@@ -8,7 +8,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Icon
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ArrowDropDown
+import androidx.compose.material.icons.rounded.ArrowDropUp
+import androidx.compose.material.icons.rounded.HorizontalRule
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -25,17 +30,50 @@ import kotlin.math.min
 fun Item(
     modifier: Modifier = Modifier,
     name: String,
-    progressable: Progressable
+    progressable: Progressable,
+    numberFormat: String = "%.2f",
 ) {
-    Column {
+    val storageProgress by animateProgressableState(progressable)
+
+    val progressText by throttle(
+        storageProgress * progressable.max,
+        1_000 / 5,
+        alwaysShow = setOf(progressable.value, progressable.max)
+    )
+
+    val fullProgressText: String = remember(storageProgress, progressText) {
+        "$numberFormat / $numberFormat".format(
+            progressText,
+            progressable.max
+        )
+    }
+
+    Column(modifier) {
         Row(verticalAlignment = Alignment.CenterVertically) {
+            IconIndicator(if (storageProgress == 1f) 0f else progressable.speed)
             Text(modifier = Modifier.padding(horizontal = 4.dp), text = name)
             StorageProgressBar(
                 modifier = Modifier.padding(horizontal = 4.dp).weight(1f),
-                progressable = progressable
+                progress = storageProgress,
+                text = fullProgressText,
             )
         }
     }
+}
+
+@Composable
+private fun IconIndicator(speed: Float) {
+    val icon = when {
+        speed > 0 -> Icons.Rounded.ArrowDropUp
+        speed < 0 -> Icons.Rounded.ArrowDropDown
+        else -> Icons.Rounded.HorizontalRule
+    }
+    val desc = when {
+        speed > 0 -> "Increasing"
+        speed < 0 -> "Decreasing"
+        else -> "Unchanging"
+    }
+    Icon(icon, contentDescription = desc)
 }
 
 
@@ -48,27 +86,16 @@ fun Item(
 @Composable
 fun StorageProgressBar(
     modifier: Modifier = Modifier,
-    progressable: Progressable,
-    numberFormat: String = "%.2f"
+    progress: Float,
+    text: String?,
 ) {
 
-    val storageProgress by animateProgressableState(progressable)
-
     Box(modifier.height(IntrinsicSize.Min)) {
-        ProgressBar(progress = storageProgress)
-
-        val progressText by throttle(
-                storageProgress * progressable.max,
-                1_000 / 5,
-                alwaysShow = setOf(progressable.value, progressable.max)
-            )
+        ProgressBar(progress = progress)
 
         Text(
             modifier = Modifier.padding(4.dp).align(Alignment.CenterEnd),
-            text = "$numberFormat / $numberFormat".format(
-                progressText,
-                progressable.max
-            )
+            text = text ?: ""
         )
     }
 }

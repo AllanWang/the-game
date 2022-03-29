@@ -3,6 +3,8 @@ package ca.allanwang.thegame.common.compose
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.SideEffect
@@ -50,7 +52,7 @@ fun throttle(
  */
 @Composable
 fun animateProgressableState(
-    progressable: Progressable
+    progressable: Progressable,
 ): State<Float> {
     val _start: Float = progressable.value / progressable.max
 
@@ -66,7 +68,7 @@ fun animateProgressableState(
             launch {
                 val start: Float = progressable.value / progressable.max
                 val speedMillis = progressable.speed / progressable.max / 1_000
-
+                Icons.Filled.ArrowDropDown
                 // Go to expected start value and stay there
                 if (speedMillis == 0f) {
                     // Already at start
