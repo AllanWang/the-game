@@ -3,6 +3,7 @@ package ca.allanwang.thegame.common.data
 sealed interface Action {
     object Reset : Action
     data class Tick(val seconds: Long) : Action
+    data class WorkerUpdate(val key: Key, val delta: Int): Action
 }
 
 fun Item.tick(amount: Float): Item {

@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.flowOf
 sealed interface Mutation {
     object Reset : Mutation
     data class Tick(val tick: Long) : Mutation
+    data class WorkerUpdate(val key: Key, val delta: Int) : Mutation
 }
 
 private val logger = FluentLogger.forEnclosingClass()
@@ -21,6 +22,11 @@ fun State.mutations(action: Action): Flow<Mutation> = when (action) {
     is Action.Reset -> {
         flowOf(
             Mutation.Reset
+        )
+    }
+    is Action.WorkerUpdate -> {
+        flowOf(
+            Mutation.WorkerUpdate(key = action.key, delta = action.delta)
         )
     }
     else -> {

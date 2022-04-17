@@ -1,19 +1,23 @@
 package ca.allanwang.thegame.common.data
 
 import com.google.common.flogger.FluentLogger
-import kotlin.math.max
-import kotlin.math.min
 
 data class State(
     val tick: Long = 0L,
     val wood: Item = Key.Wood.defaultItem().copy(unlocked = true),
     val boards: Item = Key.Boards.defaultItem().copy(unlocked = true),
+    val workers: Workers = Workers(count = 10, maxCount = 10)
+)
+
+data class Workers(
+    val count: Int,
+    val maxCount: Int
 )
 
 data class Item(
     val constants: Constants,
     val unlocked: Boolean,
-    val count: Count,
+    val workers: Workers,
     val storage: Storage,
     val transient: Transient,
 ) {
@@ -22,10 +26,9 @@ data class Item(
         val name: String,
     )
 
-    data class Count(
+    data class Workers(
         val count: Int,
         val maxCount: Int?,
-        val workers: Int,
     )
 
     data class Storage(
@@ -53,7 +56,7 @@ private val logger: FluentLogger = FluentLogger.forEnclosingClass()
 fun Key.defaultItem(): Item = Item(
     constants = constants(),
     unlocked = false,
-    count = defaultCount(),
+    workers = defaultCount(),
     storage = defaultStorage(),
     transient = defaultTransient(),
 )
@@ -64,10 +67,9 @@ fun Key.constants(): Item.Constants =
 val Item.Storage.maxRate: Float
     get() = (max - value) / max
 
-fun Key.defaultCount(): Item.Count = Item.Count(
+fun Key.defaultCount(): Item.Workers = Item.Workers(
     count = 0,
     maxCount = defaultMaxCount(),
-    workers = 0,
 )
 
 fun Key.defaultMaxCount(): Int? = when (this) {
@@ -88,6 +90,11 @@ fun Key.defaultMaxStorage(): Float = when (this) {
 fun Key.defaultTransient(): Item.Transient = Item.Transient(
     rates = Rates.rates(this)
 )
+
+fun State.item(key: Key): Item = when (key) {
+    Key.Wood -> wood
+    Key.Boards -> boards
+}
 
 fun State.update(key: Key, action: Item.() -> Item?): State {
     fun update(item: Item, copier: (Item) -> State): State {
