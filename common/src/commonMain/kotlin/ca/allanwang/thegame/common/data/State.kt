@@ -22,7 +22,7 @@ data class Item(
     val transient: Transient,
 ) {
     data class Constants(
-        val key: String,
+        val key: Key,
         val name: String,
     )
 
@@ -62,7 +62,7 @@ fun Key.defaultItem(): Item = Item(
 )
 
 fun Key.constants(): Item.Constants =
-    Item.Constants(key = key, name = title)
+    Item.Constants(key = this, name = title)
 
 val Item.Storage.maxRate: Float
     get() = (max - value) / max
@@ -96,13 +96,18 @@ fun State.item(key: Key): Item = when (key) {
     Key.Boards -> boards
 }
 
-fun State.update(key: Key, action: Item.() -> Item?): State {
-    fun update(item: Item, copier: (Item) -> State): State {
-        val newItem = item.action() ?: return this
+/**
+ * Updates a specified item based on [key].
+ *
+ * If no changes occurs, returns null.
+ */
+fun State.update(key: Key, action: Item.() -> Item?): State? {
+    fun update(item: Item, copier: (Item) -> State): State? {
+        val newItem = item.action() ?: return null
         return copier(newItem)
     }
     return when (key) {
         Key.Wood -> update(wood) { copy(wood = it) }
-        else -> TODO()
+        Key.Boards -> update(boards) { copy(boards = it) }
     }
 }

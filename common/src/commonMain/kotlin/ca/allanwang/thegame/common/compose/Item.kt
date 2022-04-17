@@ -4,6 +4,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.Text
@@ -12,11 +13,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import ca.allanwang.thegame.common.data.Action
 import ca.allanwang.thegame.common.data.Item
 
 @Composable
 fun Item(
-    modifier: Modifier = Modifier, item: Item
+    item: Item,
+    workersAvailable: Boolean,
+    action: (Action) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val progress by animateFloatAsState(
         item.storage.value / item.storage.max,
@@ -36,7 +41,27 @@ fun Item(
                 progress = progress,
                 text = progressText,
             )
-            Workers(count = item.workers)
+            Spacer(modifier = Modifier.width(48.dp))
+            Workers(
+                count = item.workers,
+                workersAvailable = workersAvailable,
+                onDecrease = {
+                    action(
+                        Action.WorkerUpdate(
+                            key = item.constants.key,
+                            delta = -1
+                        )
+                    )
+                },
+                onIncrease = {
+                    action(
+                        Action.WorkerUpdate(
+                            key = item.constants.key,
+                            delta = 1
+                        )
+                    )
+                },
+            )
         }
     }
 }

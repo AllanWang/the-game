@@ -4,7 +4,6 @@ package ca.allanwang.thegame.common.flow
 
 import ca.allanwang.thegame.common.data.Action
 import ca.allanwang.thegame.common.data.State
-import ca.allanwang.thegame.common.data.mutations
 import ca.allanwang.thegame.common.data.reduce
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
