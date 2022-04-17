@@ -48,14 +48,11 @@ import kotlinx.coroutines.sync.withLock
  */
 
 /**
- * Takes in current state and action, and returns flow of mutations.
+ * Takes in state and action, and returns new state after changes.
+ * Unlike in the original mvi library, we do not distinguish actions and mutations.
+ * The game does not have network actions
  */
-typealias Handler<State, Action, Mutation> = (State, Action) -> Flow<Mutation>
-
-/**
- * Takes in state and mutation, and returns new state after changes.
- */
-typealias Reducer<State, Mutation> = (State, Mutation) -> State
+typealias Reducer<State, Action> = (State, Action) -> State
 
 interface MVFlow<State, Action> {
     fun takeView(
@@ -75,23 +72,20 @@ interface MVFlow<State, Action> {
     }
 }
 
-fun <State, Action, Mutation> MVFlow(
+fun <State, Action> MVFlow(
     initialState: State,
-    handler: Handler<State, Action, Mutation>,
-    reducer: Reducer<State, Mutation>,
+    reducer: Reducer<State, Action>,
     mvflowCoroutineScope: CoroutineScope,
 ): MVFlow<State, Action> =
     MVFlowImpl(
         initialState,
-        handler,
         reducer,
         mvflowCoroutineScope,
     )
 
-private class MVFlowImpl<State, Action, Mutation>(
+private class MVFlowImpl<State, Action>(
     initialState: State,
-    private val handler: Handler<State, Action, Mutation>,
-    private val reducer: Reducer<State, Mutation>,
+    private val reducer: Reducer<State, Action>,
     private val mvflowCoroutineScope: CoroutineScope,
 ) : MVFlow<State, Action> {
     private val state = MutableStateFlow(initialState)
@@ -135,19 +129,14 @@ private class MVFlowImpl<State, Action, Mutation>(
 
     private suspend fun Flow<Action>.collectIntoHandler(callerCoroutineScope: CoroutineScope) {
         onEach { action ->
-            callerCoroutineScope.launch {
+            mvflowCoroutineScope.launch {
                 if (action is Tick)
                     logger.atFiner().log("Action %s", action)
                 else
                     logger.atInfo().log("Action %s", action)
-                handler(state.value, action)
-                    .onEach { mutation ->
-                        mutex.withLock {
-                            logger.atFine().log("- Mutation %s", mutation)
-                            state.value = reducer.invoke(state.value, mutation)
-                        }
-                    }
-                    .launchIn(mvflowCoroutineScope)
+                mutex.withLock {
+                    state.value = reducer(state.value, action)
+                }
             }
         }
             .launchIn(callerCoroutineScope)

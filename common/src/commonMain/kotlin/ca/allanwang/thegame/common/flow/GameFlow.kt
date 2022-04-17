@@ -17,8 +17,7 @@ fun GameFlow(
     scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
 ): GameFlow = MVFlow(
     initialState = initialState,
-    handler = { state, action -> state.mutations(action) },
-    reducer = { state, mutation -> state.reduce(mutation) },
+    reducer = { state, action -> state.reduce(action) },
     mvflowCoroutineScope = scope,
 )
 
