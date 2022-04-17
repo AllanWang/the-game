@@ -1,4 +1,4 @@
-package ca.allanwang.thegame.common.data
+package ca.allanwang.thegame.common.flow
 
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collect

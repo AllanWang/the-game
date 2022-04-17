@@ -24,6 +24,7 @@ kotlin {
             dependencies {
                 implementation(project(":common"))
                 implementation(compose.desktop.currentOs)
+                implementation("com.google.flogger:flogger-system-backend:0.7.4")
             }
         }
         val jvmTest by getting {

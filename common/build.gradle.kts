@@ -26,6 +26,7 @@ kotlin {
                 api(compose.foundation)
                 api(compose.material)
                 api(compose.materialIconsExtended)
+                implementation("com.google.flogger:flogger:0.7.4")
             }
         }
         val commonTest by getting {

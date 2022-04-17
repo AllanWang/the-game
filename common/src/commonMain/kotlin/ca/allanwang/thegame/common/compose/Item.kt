@@ -1,5 +1,8 @@
 package ca.allanwang.thegame.common.compose
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -8,6 +11,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.Icon
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
@@ -20,42 +24,40 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.clipPath
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
+import ca.allanwang.thegame.common.data.Item
 import ca.allanwang.thegame.common.data.Progressable
 import kotlin.math.min
 
 @Composable
 fun Item(
     modifier: Modifier = Modifier,
-    name: String,
-    progressable: Progressable,
-    numberFormat: String = "%.2f",
+    item: Item
 ) {
-    val storageProgress by animateProgressableState(progressable)
-
-    val progressText by throttle(
-        storageProgress * progressable.max,
-        1_000 / 5,
-        alwaysShow = setOf(progressable.value, progressable.max)
+    val progress by animateFloatAsState(
+        item.storage.value / item.storage.max,
+        animationSpec = tween(durationMillis = 300)
     )
-
-    val fullProgressText: String = remember(storageProgress, progressText) {
-        "$numberFormat / $numberFormat".format(
-            progressText,
-            progressable.max
-        )
-    }
-
-    Column(modifier) {
+    val progressText =
+        "%.2f / %.2f".format(item.storage.value, item.storage.max)
+    Column(modifier.padding(vertical = 4.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            IconIndicator(if (storageProgress == 1f) 0f else progressable.speed)
-            Text(modifier = Modifier.padding(horizontal = 4.dp), text = name)
+            IconIndicator(1f) // TODO
+            Text(
+                modifier = Modifier.padding(horizontal = 4.dp).width(60.dp),
+                text = item.constants.name
+            )
             StorageProgressBar(
                 modifier = Modifier.padding(horizontal = 4.dp).weight(1f),
-                progress = storageProgress,
-                text = fullProgressText,
+                progress = progress,
+                text = progressText,
             )
         }
     }
@@ -111,19 +113,31 @@ fun ProgressBar(
 
         val cornerRadius = CornerRadius(min(canvasWidth, canvasHeight) / 4)
 
-        drawRoundRect(
-            size = Size(width = canvasWidth, height = canvasHeight),
-            cornerRadius = cornerRadius,
-            color = Color(0xFFDDDDDD)
-        )
+        val clipPath = Path().apply {
+            addRoundRect(
+                RoundRect(
+                    0f,
+                    0f,
+                    canvasWidth,
+                    canvasHeight,
+                    cornerRadius,
+                )
+            )
+        }
 
-        drawRoundRect(
-            size = Size(
-                width = canvasWidth * progress,
-                height = canvasHeight
-            ),
-            cornerRadius = cornerRadius,
-            color = Color(0xFFBBBBBB)
-        )
+        clipPath(clipPath) {
+            drawRect(
+                size = Size(width = canvasWidth, height = canvasHeight),
+                color = Color(0xFFDDDDDD)
+            )
+
+            drawRect(
+                size = Size(
+                    width = canvasWidth * progress,
+                    height = canvasHeight
+                ),
+                color = Color(0xFFBBBBBB)
+            )
+        }
     }
 }

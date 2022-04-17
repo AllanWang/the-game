@@ -12,7 +12,7 @@ import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import ca.allanwang.thegame.common.data.Progressable
-import ca.allanwang.thegame.common.data.throttle
+import ca.allanwang.thegame.common.flow.throttle
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
